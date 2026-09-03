@@ -19,7 +19,7 @@
       font-family: system-ui, -apple-system, sans-serif; 
     }
 
-    /* Dark Modern AI / Cyber-Chic Glassmorphism Palette */
+    /* Glassmorphism Theme Styles */
     .card-neon-indigo { 
       background: rgba(15, 23, 42, 0.75) !important; 
       border: 1px solid rgba(99, 102, 241, 0.4) !important; 
@@ -51,29 +51,47 @@
       background: rgba(30, 41, 59, 0.9) !important; 
       box-shadow: 0 0 20px rgba(129, 140, 248, 0.4) !important;
     }
+
+    .nav-btn-active {
+      background-color: rgba(99, 102, 241, 0.25) !important;
+      color: #818cf8 !important;
+      border-color: rgba(99, 102, 241, 0.5) !important;
+    }
   </style>
 </head>
 <body class="min-h-screen flex flex-col items-center justify-center p-4 relative">
 
-  <!-- TOP RIGHT NAV TABS -->
   <div class="fixed top-3 right-3 z-50 flex gap-2 bg-slate-900/80 border border-slate-700/60 p-1.5 rounded-2xl shadow-2xl backdrop-blur-xl">
-    <button onclick="openInNewTab('form')" class="px-3 py-1 text-xs font-semibold rounded-xl transition hover:bg-slate-800/80 hover:text-indigo-400 text-slate-300">📝 Form View</button>
-    <button onclick="openInNewTab('admin')" class="px-3 py-1 text-xs font-semibold rounded-xl transition hover:bg-slate-800/80 hover:text-indigo-400 text-slate-300">⚙️ Admin Tab 🔒</button>
-    <button onclick="openInNewTab('stage')" class="px-3 py-1 text-xs font-semibold rounded-xl transition hover:bg-slate-800/80 hover:text-indigo-400 text-slate-300">📺 Stage Tab 🔒</button>
+    <button id="nav-btn-form" onclick="navigateTo('form')" class="px-3 py-1 text-xs font-semibold rounded-xl border border-transparent transition hover:bg-slate-800/80 hover:text-indigo-400 text-slate-300">📝 Form View</button>
+    <button id="nav-btn-admin" onclick="navigateTo('admin')" class="px-3 py-1 text-xs font-semibold rounded-xl border border-transparent transition hover:bg-slate-800/80 hover:text-indigo-400 text-slate-300">⚙️ Admin Tab 🔒</button>
+    <button id="nav-btn-stage" onclick="navigateTo('stage')" class="px-3 py-1 text-xs font-semibold rounded-xl border border-transparent transition hover:bg-slate-800/80 hover:text-indigo-400 text-slate-300">📺 Stage Tab 🔒</button>
   </div>
 
-  <!-- AUTH SCREEN -->
   <div id="view-auth" class="w-full max-w-sm card-neon-purple rounded-3xl p-8 text-center shadow-2xl backdrop-blur-xl hidden">
     <h2 class="text-xl font-bold mb-2 text-slate-100">Restricted Access 🔒</h2>
     <p id="auth-subtitle" class="text-xs text-slate-400 mb-6">Enter passcode to continue</p>
-    <input type="password" id="passcode-input" placeholder="Enter Passcode" class="w-full px-4 py-3 rounded-xl bg-slate-950/80 border border-slate-700/80 text-slate-100 text-center mb-4 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500">
-    <button onclick="submitPasscode()" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-purple-950/50">Unlock View 🚀</button>
+    <form onsubmit="event.preventDefault(); submitPasscode();">
+      <input type="password" id="passcode-input" placeholder="Enter Passcode" class="w-full px-4 py-3 rounded-xl bg-slate-950/80 border border-slate-700/80 text-slate-100 text-center mb-4 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500">
+      <button type="submit" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-purple-950/50">Unlock View 🚀</button>
+    </form>
   </div>
 
-  <!-- 1. STUDENT SUBMISSION VIEW -->
   <div id="view-form" class="w-full max-w-md hidden">
-    <div id="form-screen-2" class="card-neon-indigo rounded-3xl p-6 shadow-2xl backdrop-blur-xl">
-      <h1 class="text-2xl font-bold text-center mb-6 tracking-wide bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 bg-clip-text text-transparent">Appreciation Wall 💌</h1>
+    
+    <div id="form-screen-1" class="card-neon-purple rounded-3xl p-8 text-center shadow-2xl backdrop-blur-xl space-y-6">
+      <h2 class="text-2xl font-bold text-slate-100 tracking-wide">so u know how to type? 🤔</h2>
+      <div class="space-y-3">
+        <button onclick="goToFormScreen2()" class="w-full bg-indigo-600/30 hover:bg-indigo-600/50 border border-indigo-500/50 text-indigo-200 font-semibold py-3.5 px-4 rounded-xl transition hover:scale-[1.02]">
+          it's the only thing i can do ⌨️
+        </button>
+        <button onclick="goToFormScreen2()" class="w-full bg-slate-800/60 hover:bg-slate-800 border border-slate-700 text-slate-300 font-semibold py-3.5 px-4 rounded-xl transition hover:scale-[1.02]">
+          no, i just smash keyboard 💥
+        </button>
+      </div>
+    </div>
+
+    <div id="form-screen-2" class="card-neon-indigo rounded-3xl p-6 shadow-2xl backdrop-blur-xl hidden">
+      <h1 class="text-2xl font-bold text-center mb-6 tracking-wide bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 bg-clip-text text-transparent">prove it then 💌</h1>
       
       <form id="submission-form" class="space-y-4">
         <div class="grid grid-cols-2 gap-3">
@@ -94,12 +112,14 @@
           <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Your Message *</label>
           <textarea id="message-text" required rows="4" placeholder="write from your heart, not chatgpt pls 💀" class="w-full px-3 py-2.5 rounded-xl bg-slate-950/70 border border-slate-800 text-slate-100 focus:outline-none focus:border-indigo-500 text-sm"></textarea>
         </div>
+        
         <div class="text-xs text-slate-400 space-y-1 pl-1">
           <p class="font-semibold text-slate-300">brain not braining? try this 👇</p>
-          <p class="opacity-80">• what's one thing they taught you that you'll never forget?</p>
-          <p class="opacity-80">• a small moment when they made you feel seen / supported?</p>
-          <p class="opacity-80">• if you had 10 seconds on stage, what would you thank them for?</p>
+          <p class="opacity-70">• what is one quality of theirs you genuinely admire?</p>
+          <p class="opacity-70">• how does it feel to be in their class overall?</p>
+          <p class="opacity-70">• what's your honest thank you to them?</p>
         </div>
+
         <button type="submit" id="submit-btn" class="w-full bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-indigo-950/50 mt-2">
           send it 🚀
         </button>
@@ -108,12 +128,12 @@
 
     <div id="form-screen-3" class="card-neon-emerald rounded-3xl p-8 text-center shadow-2xl backdrop-blur-xl hidden">
       <div class="text-4xl mb-3">🙏</div>
-      <h3 class="text-xl font-bold mb-2 text-emerald-300">Thanks for not being lazy for once 🙏</h3>
-      <p class="text-sm text-slate-300">Your message has been sent!</p>
+      <h3 class="text-xl font-bold mb-2 text-emerald-300">thanks for not being lazy for once 🙏</h3>
+      <p class="text-sm text-slate-300 mb-6">Your message has been sent for approval!</p>
+      <button onclick="resetToFormScreen1()" class="px-4 py-2 bg-slate-900 border border-slate-700 hover:bg-slate-800 rounded-xl text-xs font-semibold text-slate-200 transition">Send Another Note 💌</button>
     </div>
   </div>
 
-  <!-- 2. CINEMATIC STAGE VIEW -->
   <div id="view-stage" class="w-full max-w-5xl min-h-screen flex flex-col justify-between p-6 hidden">
     <header class="flex justify-between items-center border-b border-slate-800/80 pb-4 mt-8 bg-slate-900/40 p-4 rounded-2xl backdrop-blur-xl border border-slate-800">
       <div>
@@ -139,7 +159,6 @@
     </footer>
   </div>
 
-  <!-- 3. ADMIN MODERATION PANEL -->
   <div id="view-admin" class="w-full max-w-3xl min-h-screen p-4 hidden">
     <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 border-b border-slate-800/80 pb-4 mt-8 bg-slate-900/40 p-4 rounded-2xl backdrop-blur-xl border border-slate-800">
       <div>
@@ -173,59 +192,111 @@
       measurementId: "G-QGX1HCJ8YS"
     };
 
-    const PASSCODE = "1234teachers";
+    const PASSCODE = "Unguessable";
     const pastelThemes = ['card-neon-indigo', 'card-neon-cyan', 'card-neon-purple', 'card-neon-emerald', 'card-neon-rose'];
 
     firebase.initializeApp(firebaseConfig);
     const db = firebase.database();
 
-    let targetView = 'form';
+    let currentActiveView = 'form';
+    let targetRequestedView = 'form';
+    let isAuthenticated = false;
 
-    function openInNewTab(view) {
-      const baseUrl = window.location.origin + window.location.pathname;
-      if (view === 'form') window.open(baseUrl, '_blank');
-      else window.open(`${baseUrl}?view=${view}`, '_blank');
+    function navigateTo(viewName) {
+      targetRequestedView = viewName;
+      const newUrl = viewName === 'form' 
+        ? window.location.pathname 
+        : `${window.location.pathname}?view=${viewName}`;
+      window.history.pushState({ view: viewName }, '', newUrl);
+
+      if ((viewName === 'admin' || viewName === 'stage') && !isAuthenticated) {
+        showAuthScreen(viewName);
+        return;
+      }
+
+      activateView(viewName);
     }
 
-    function checkAuthAndLoad(viewName) {
-      targetView = viewName;
-      document.getElementById('view-form').classList.add('hidden');
-      document.getElementById('view-stage').classList.add('hidden');
-      document.getElementById('view-admin').classList.add('hidden');
-      document.getElementById('view-auth').classList.add('hidden');
-
-      if (viewName === 'admin' || viewName === 'stage') {
-        document.getElementById('auth-subtitle').innerText = `Enter passcode for ${viewName.toUpperCase()} view`;
-        document.getElementById('view-auth').classList.remove('hidden');
-      } else {
-        document.getElementById('view-form').classList.remove('hidden');
-        initFormView();
-      }
+    function showAuthScreen(viewName) {
+      hideAllViews();
+      document.getElementById('auth-subtitle').innerText = `Enter passcode for ${viewName.toUpperCase()} view`;
+      document.getElementById('view-auth').classList.remove('hidden');
+      document.getElementById('passcode-input').focus();
     }
 
     function submitPasscode() {
       const input = document.getElementById('passcode-input').value;
       if (input === PASSCODE) {
-        document.getElementById('view-auth').classList.add('hidden');
-        if (targetView === 'admin') {
-          document.getElementById('view-admin').classList.remove('hidden');
-          initAdminView();
-        } else if (targetView === 'stage') {
-          document.getElementById('view-stage').classList.remove('hidden');
-          initStageView();
-        }
+        isAuthenticated = true;
+        document.getElementById('passcode-input').value = '';
+        activateView(targetRequestedView);
       } else {
         alert("Incorrect passcode!");
       }
     }
 
+    function activateView(viewName) {
+      currentActiveView = viewName;
+      hideAllViews();
+      updateNavStyles(viewName);
+
+      if (viewName === 'form') {
+        document.getElementById('view-form').classList.remove('hidden');
+        resetToFormScreen1();
+      } else if (viewName === 'admin') {
+        document.getElementById('view-admin').classList.remove('hidden');
+        initAdminView();
+      } else if (viewName === 'stage') {
+        document.getElementById('view-stage').classList.remove('hidden');
+        initStageView();
+      }
+    }
+
+    function hideAllViews() {
+      document.getElementById('view-form').classList.add('hidden');
+      document.getElementById('view-stage').classList.add('hidden');
+      document.getElementById('view-admin').classList.add('hidden');
+      document.getElementById('view-auth').classList.add('hidden');
+    }
+
+    function updateNavStyles(activeView) {
+      ['form', 'admin', 'stage'].forEach(v => {
+        const btn = document.getElementById(`nav-btn-${v}`);
+        if (v === activeView) {
+          btn.classList.add('nav-btn-active');
+        } else {
+          btn.classList.remove('nav-btn-active');
+        }
+      });
+    }
+
+    window.addEventListener('popstate', () => {
+      const params = new URLSearchParams(window.location.search);
+      const viewParam = params.get('view') ? params.get('view').toLowerCase().trim() : 'form';
+      navigateTo(viewParam);
+    });
+
     window.addEventListener('DOMContentLoaded', () => {
       const params = new URLSearchParams(window.location.search);
       const viewParam = params.get('view') ? params.get('view').toLowerCase().trim() : 'form';
-      checkAuthAndLoad(viewParam);
+      navigateTo(viewParam);
     });
 
-    /* FORM LOGIC */
+    /* FORM FLOW SCREEN LOGIC */
+    function goToFormScreen2() {
+      document.getElementById('form-screen-1').classList.add('hidden');
+      document.getElementById('form-screen-2').classList.remove('hidden');
+      initFormView();
+    }
+
+    function resetToFormScreen1() {
+      document.getElementById('submission-form').reset();
+      document.getElementById('submit-btn').disabled = false;
+      document.getElementById('form-screen-2').classList.add('hidden');
+      document.getElementById('form-screen-3').classList.add('hidden');
+      document.getElementById('form-screen-1').classList.remove('hidden');
+    }
+
     function initFormView() {
       const form = document.getElementById('submission-form');
       form.onsubmit = (e) => {
@@ -271,6 +342,7 @@
       });
 
       document.onkeydown = (e) => {
+        if (currentActiveView !== 'stage') return;
         if (e.key === 'ArrowRight' || e.key === ' ') nextCard();
         else if (e.key === 'ArrowLeft') prevCard();
       };
@@ -440,9 +512,11 @@
     }
 
     function clearAllData() {
-      db.ref('appreciations').remove();
-      selectedIds.clear();
-      updateButtons();
+      if (confirm("Are you sure you want to delete ALL messages?")) {
+        db.ref('appreciations').remove();
+        selectedIds.clear();
+        updateButtons();
+      }
     }
 
     function escapeHtml(str) {
