@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Teacher's Day Digital Wall</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+  <style>
+    body { 
+      background-color: #090d16 !important; 
+      background-image: 
+        radial-gradient(at 0% 0%, rgba(99, 102, 241, 0.12) 0px, transparent 50%),
+        radial-gradient(at 100% 100%, rgba(168, 85, 247, 0.12) 0px, transparent 50%);
+      background-attachment: fixed;
+      color: #f8fafc; 
+      font-family: system-ui, -apple-system, sans-serif; 
+    }
+
+    /* Dark Modern AI / Cyber-Chic Glassmorphism Palette */
+    .card-neon-indigo { 
+      background: rgba(15, 23, 42, 0.75) !important; 
+      border: 1px solid rgba(99, 102, 241, 0.4) !important; 
+      box-shadow: 0 8px 32px 0 rgba(99, 102, 241, 0.15); 
+    }
+    .card-neon-cyan { 
+      background: rgba(15, 23, 42, 0.75) !important; 
+      border: 1px solid rgba(6, 182, 212, 0.4) !important; 
+      box-shadow: 0 8px 32px 0 rgba(6, 182, 212, 0.15); 
+    }
+    .card-neon-purple { 
+      background: rgba(15, 23, 42, 0.75) !important; 
+      border: 1px solid rgba(168, 85, 247, 0.4) !important; 
+      box-shadow: 0 8px 32px 0 rgba(168, 85, 247, 0.15); 
+    }
+    .card-neon-emerald { 
+      background: rgba(15, 23, 42, 0.75) !important; 
+      border: 1px solid rgba(16, 185, 129, 0.4) !important; 
+      box-shadow: 0 8px 32px 0 rgba(16, 185, 129, 0.15); 
+    }
+    .card-neon-rose { 
+      background: rgba(15, 23, 42, 0.75) !important; 
+      border: 1px solid rgba(244, 63, 94, 0.4) !important; 
+      box-shadow: 0 8px 32px 0 rgba(244, 63, 94, 0.15); 
+    }
+
+    .selected-card { 
+      outline: 2px solid #818cf8 !important; 
+      background: rgba(30, 41, 59, 0.9) !important; 
+      box-shadow: 0 0 20px rgba(129, 140, 248, 0.4) !important;
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-4 relative">
+
+  <!-- TOP RIGHT NAV TABS -->
+  <div class="fixed top-3 right-3 z-50 flex gap-2 bg-slate-900/80 border border-slate-700/60 p-1.5 rounded-2xl shadow-2xl backdrop-blur-xl">
+    <button onclick="openInNewTab('form')" class="px-3 py-1 text-xs font-semibold rounded-xl transition hover:bg-slate-800/80 hover:text-indigo-400 text-slate-300">📝 Form View</button>
+    <button onclick="openInNewTab('admin')" class="px-3 py-1 text-xs font-semibold rounded-xl transition hover:bg-slate-800/80 hover:text-indigo-400 text-slate-300">⚙️ Admin Tab 🔒</button>
+    <button onclick="openInNewTab('stage')" class="px-3 py-1 text-xs font-semibold rounded-xl transition hover:bg-slate-800/80 hover:text-indigo-400 text-slate-300">📺 Stage Tab 🔒</button>
+  </div>
+
+  <!-- AUTH SCREEN -->
+  <div id="view-auth" class="w-full max-w-sm card-neon-purple rounded-3xl p-8 text-center shadow-2xl backdrop-blur-xl hidden">
+    <h2 class="text-xl font-bold mb-2 text-slate-100">Restricted Access 🔒</h2>
+    <p id="auth-subtitle" class="text-xs text-slate-400 mb-6">Enter passcode to continue</p>
+    <input type="password" id="passcode-input" placeholder="Enter Passcode" class="w-full px-4 py-3 rounded-xl bg-slate-950/80 border border-slate-700/80 text-slate-100 text-center mb-4 focus:outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500">
+    <button onclick="submitPasscode()" class="w-full bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-purple-950/50">Unlock View 🚀</button>
+  </div>
+
+  <!-- 1. STUDENT SUBMISSION VIEW -->
+  <div id="view-form" class="w-full max-w-md hidden">
+    <div id="form-screen-2" class="card-neon-indigo rounded-3xl p-6 shadow-2xl backdrop-blur-xl">
+      <h1 class="text-2xl font-bold text-center mb-6 tracking-wide bg-gradient-to-r from-indigo-400 via-purple-300 to-pink-400 bg-clip-text text-transparent">Appreciation Wall 💌</h1>
+      
+      <form id="submission-form" class="space-y-4">
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Name</label>
+            <input type="text" id="sender-name" placeholder="Your name" class="w-full px-3 py-2.5 rounded-xl bg-slate-950/70 border border-slate-800 text-slate-100 focus:outline-none focus:border-indigo-500 text-sm">
+          </div>
+          <div>
+            <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Grade</label>
+            <input type="text" id="sender-grade" placeholder="e.g. 11-A" class="w-full px-3 py-2.5 rounded-xl bg-slate-950/70 border border-slate-800 text-slate-100 focus:outline-none focus:border-indigo-500 text-sm">
+          </div>
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">For Teacher</label>
+          <input type="text" id="teacher-name" placeholder="Teacher name or All Teachers" class="w-full px-3 py-2.5 rounded-xl bg-slate-950/70 border border-slate-800 text-slate-100 focus:outline-none focus:border-indigo-500 text-sm">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold uppercase text-slate-400 mb-1">Your Message *</label>
+          <textarea id="message-text" required rows="4" placeholder="write from your heart, not chatgpt pls 💀" class="w-full px-3 py-2.5 rounded-xl bg-slate-950/70 border border-slate-800 text-slate-100 focus:outline-none focus:border-indigo-500 text-sm"></textarea>
+        </div>
+        <div class="text-xs text-slate-400 space-y-1 pl-1">
+          <p class="font-semibold text-slate-300">brain not braining? try this 👇</p>
+          <p class="opacity-80">• what's one thing they taught you that you'll never forget?</p>
+          <p class="opacity-80">• a small moment when they made you feel seen / supported?</p>
+          <p class="opacity-80">• if you had 10 seconds on stage, what would you thank them for?</p>
+        </div>
+        <button type="submit" id="submit-btn" class="w-full bg-gradient-to-r from-indigo-600 to-indigo-500 hover:from-indigo-500 hover:to-indigo-400 text-white font-bold py-3 rounded-xl transition shadow-lg shadow-indigo-950/50 mt-2">
+          send it 🚀
+        </button>
+      </form>
+    </div>
+
+    <div id="form-screen-3" class="card-neon-emerald rounded-3xl p-8 text-center shadow-2xl backdrop-blur-xl hidden">
+      <div class="text-4xl mb-3">🙏</div>
+      <h3 class="text-xl font-bold mb-2 text-emerald-300">Thanks for not being lazy for once 🙏</h3>
+      <p class="text-sm text-slate-300">Your message has been sent!</p>
+    </div>
+  </div>
+
+  <!-- 2. CINEMATIC STAGE VIEW -->
+  <div id="view-stage" class="w-full max-w-5xl min-h-screen flex flex-col justify-between p-6 hidden">
+    <header class="flex justify-between items-center border-b border-slate-800/80 pb-4 mt-8 bg-slate-900/40 p-4 rounded-2xl backdrop-blur-xl border border-slate-800">
+      <div>
+        <h1 class="text-3xl font-extrabold bg-gradient-to-r from-slate-100 via-indigo-200 to-purple-300 bg-clip-text text-transparent">Happy Teacher's Day 🎓</h1>
+        <p class="text-slate-400 text-sm">Auditorium Presentation Wall</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button onclick="toggleFeaturedOnly()" id="filter-btn" class="bg-slate-900 border border-slate-700 text-slate-300 hover:bg-slate-800 px-3 py-1.5 rounded-xl text-xs font-semibold transition">
+          Showing: All Approved
+        </button>
+        <button onclick="toggleAutoplay()" id="autoplay-btn" class="bg-indigo-950/80 border border-indigo-700/80 text-indigo-300 px-3 py-1.5 rounded-xl text-xs font-semibold transition">
+          Auto Play: OFF
+        </button>
+      </div>
+    </header>
+
+    <div id="stage-card-container" class="my-auto"></div>
+
+    <footer class="flex items-center justify-between border-t border-slate-800/80 pt-4 bg-slate-900/40 p-4 rounded-2xl backdrop-blur-xl border border-slate-800">
+      <button onclick="prevCard()" class="bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-slate-300 px-5 py-2 rounded-xl text-sm font-semibold transition">← Previous</button>
+      <span id="stage-counter" class="text-xs font-mono text-indigo-400 tracking-wider">0 / 0</span>
+      <button onclick="nextCard()" class="bg-slate-900 hover:bg-slate-800 border border-slate-700/80 text-slate-300 px-5 py-2 rounded-xl text-sm font-semibold transition">Next →</button>
+    </footer>
+  </div>
+
+  <!-- 3. ADMIN MODERATION PANEL -->
+  <div id="view-admin" class="w-full max-w-3xl min-h-screen p-4 hidden">
+    <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6 border-b border-slate-800/80 pb-4 mt-8 bg-slate-900/40 p-4 rounded-2xl backdrop-blur-xl border border-slate-800">
+      <div>
+        <h1 class="text-xl font-bold text-slate-100">Moderation Panel</h1>
+        <p class="text-xs text-slate-400">Click a card to select/deselect it</p>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <button id="bulk-delete-btn" onclick="deleteSelected()" class="bg-rose-950/80 border border-rose-800/80 text-rose-300 px-3 py-1.5 rounded-xl text-xs font-bold transition disabled:opacity-40 hover:bg-rose-900" disabled>
+          🗑️ Delete Selected (<span id="delete-count">0</span>)
+        </button>
+        <button id="bulk-approve-btn" onclick="approveSelected()" class="bg-emerald-950/80 border border-emerald-700/80 text-emerald-300 px-4 py-1.5 rounded-xl text-xs font-bold transition disabled:opacity-40 hover:bg-emerald-900" disabled>
+          Approve Selected (<span id="selected-count">0</span>)
+        </button>
+        <button onclick="clearAllData()" class="bg-red-950/80 border border-red-800/80 text-red-300 px-3 py-1.5 rounded-xl text-xs font-bold hover:bg-red-900 transition">
+          Clear All Data
+        </button>
+      </div>
+    </div>
+    <div id="admin-list" class="space-y-3"></div>
+  </div>
+
+  <script>
+    const firebaseConfig = {
+      apiKey: "AIzaSyDLvvsBA2He_Ac_k2hRSbPwkRnPF0eCzqg",
+      authDomain: "digital-wall-c2ee3.firebaseapp.com",
+      databaseURL: "https://digital-wall-c2ee3-default-rtdb.firebaseio.com",
+      projectId: "digital-wall-c2ee3",
+      storageBucket: "digital-wall-c2ee3.firebasestorage.app",
+      messagingSenderId: "869100384117",
+      appId: "1:869100384117:web:3e00660861625f88b96d3c",
+      measurementId: "G-QGX1HCJ8YS"
+    };
+
+    const PASSCODE = "1234teachers";
+    const pastelThemes = ['card-neon-indigo', 'card-neon-cyan', 'card-neon-purple', 'card-neon-emerald', 'card-neon-rose'];
+
+    firebase.initializeApp(firebaseConfig);
+    const db = firebase.database();
+
+    let targetView = 'form';
+
+    function openInNewTab(view) {
+      const baseUrl = window.location.origin + window.location.pathname;
+      if (view === 'form') window.open(baseUrl, '_blank');
+      else window.open(`${baseUrl}?view=${view}`, '_blank');
+    }
+
+    function checkAuthAndLoad(viewName) {
+      targetView = viewName;
+      document.getElementById('view-form').classList.add('hidden');
+      document.getElementById('view-stage').classList.add('hidden');
+      document.getElementById('view-admin').classList.add('hidden');
+      document.getElementById('view-auth').classList.add('hidden');
+
+      if (viewName === 'admin' || viewName === 'stage') {
+        document.getElementById('auth-subtitle').innerText = `Enter passcode for ${viewName.toUpperCase()} view`;
+        document.getElementById('view-auth').classList.remove('hidden');
+      } else {
+        document.getElementById('view-form').classList.remove('hidden');
+        initFormView();
+      }
+    }
+
+    function submitPasscode() {
+      const input = document.getElementById('passcode-input').value;
+      if (input === PASSCODE) {
+        document.getElementById('view-auth').classList.add('hidden');
+        if (targetView === 'admin') {
+          document.getElementById('view-admin').classList.remove('hidden');
+          initAdminView();
+        } else if (targetView === 'stage') {
+          document.getElementById('view-stage').classList.remove('hidden');
+          initStageView();
+        }
+      } else {
+        alert("Incorrect passcode!");
+      }
+    }
+
+    window.addEventListener('DOMContentLoaded', () => {
+      const params = new URLSearchParams(window.location.search);
+      const viewParam = params.get('view') ? params.get('view').toLowerCase().trim() : 'form';
+      checkAuthAndLoad(viewParam);
+    });
+
+    /* FORM LOGIC */
+    function initFormView() {
+      const form = document.getElementById('submission-form');
+      form.onsubmit = (e) => {
+        e.preventDefault();
+        const submitBtn = document.getElementById('submit-btn');
+        submitBtn.disabled = true;
+
+        const payload = {
+          name: document.getElementById('sender-name').value.trim() || "Anonymous",
+          grade: document.getElementById('sender-grade').value.trim() || "Student",
+          teacher: document.getElementById('teacher-name').value.trim() || "All Teachers",
+          message: document.getElementById('message-text').value.trim(),
+          status: 'pending',
+          featured: false,
+          createdAt: Date.now()
+        };
+
+        db.ref('appreciations').push(payload, (error) => {
+          if (!error) {
+            document.getElementById('form-screen-2').classList.add('hidden');
+            document.getElementById('form-screen-3').classList.remove('hidden');
+            confetti({ particleCount: 80, spread: 60, origin: { y: 0.6 } });
+          } else {
+            alert('Error submitting message.');
+            submitBtn.disabled = false;
+          }
+        });
+      };
+    }
+
+    /* STAGE LOGIC */
+    let stageMessages = [];
+    let currentIndex = 0;
+    let featuredOnly = false;
+    let autoplayTimer = null;
+
+    function initStageView() {
+      db.ref('appreciations').on('value', (snapshot) => {
+        const data = snapshot.val() || {};
+        const all = Object.keys(data).map(id => ({ id, ...data[id] })).filter(m => m.status === 'approved');
+        stageMessages = featuredOnly ? all.filter(m => m.featured) : all;
+        renderStageCard();
+      });
+
+      document.onkeydown = (e) => {
+        if (e.key === 'ArrowRight' || e.key === ' ') nextCard();
+        else if (e.key === 'ArrowLeft') prevCard();
+      };
+    }
+
+    function renderStageCard() {
+      const container = document.getElementById('stage-card-container');
+      document.getElementById('stage-counter').innerText = `${stageMessages.length > 0 ? currentIndex + 1 : 0} / ${stageMessages.length}`;
+
+      if (stageMessages.length === 0) {
+        container.innerHTML = `<div class="text-center py-20 text-slate-400 border border-slate-800 bg-slate-900/30 rounded-3xl backdrop-blur-xl"><p class="text-2xl font-semibold">Submissions are open!</p></div>`;
+        return;
+      }
+
+      if (currentIndex >= stageMessages.length) currentIndex = 0;
+      const msg = stageMessages[currentIndex];
+      const theme = pastelThemes[currentIndex % pastelThemes.length];
+
+      container.innerHTML = `
+        <div class="${theme} rounded-3xl p-10 max-w-3xl mx-auto shadow-2xl backdrop-blur-xl min-h-[300px] flex flex-col justify-between">
+          <div>
+            <div class="text-xs font-bold uppercase tracking-widest text-indigo-400 mb-4">To: ${escapeHtml(msg.teacher)}</div>
+            <p class="text-2xl md:text-3xl text-slate-100 font-serif italic leading-relaxed">"${escapeHtml(msg.message)}"</p>
+          </div>
+          <div class="mt-8 pt-4 border-t border-slate-700/50 flex justify-between items-center text-sm text-slate-300">
+            <span class="font-semibold">— ${escapeHtml(msg.name)} (${escapeHtml(msg.grade)})</span>
+            ${msg.featured ? '<span class="text-xs bg-amber-500/10 text-amber-300 px-3 py-1 rounded-full border border-amber-500/30 font-medium shadow-sm">★ Featured</span>' : ''}
+          </div>
+        </div>
+      `;
+    }
+
+    function nextCard() {
+      if (stageMessages.length === 0) return;
+      currentIndex = (currentIndex + 1) % stageMessages.length;
+      renderStageCard();
+    }
+
+    function prevCard() {
+      if (stageMessages.length === 0) return;
+      currentIndex = (currentIndex - 1 + stageMessages.length) % stageMessages.length;
+      renderStageCard();
+    }
+
+    function toggleFeaturedOnly() {
+      featuredOnly = !featuredOnly;
+      document.getElementById('filter-btn').innerText = `Showing: ${featuredOnly ? 'Featured Only' : 'All Approved'}`;
+      db.ref('appreciations').once('value', (snapshot) => {
+        const data = snapshot.val() || {};
+        const all = Object.keys(data).map(id => ({ id, ...data[id] })).filter(m => m.status === 'approved');
+        stageMessages = featuredOnly ? all.filter(m => m.featured) : all;
+        currentIndex = 0;
+        renderStageCard();
+      });
+    }
+
+    function toggleAutoplay() {
+      const btn = document.getElementById('autoplay-btn');
+      if (autoplayTimer) {
+        clearInterval(autoplayTimer);
+        autoplayTimer = null;
+        btn.innerText = "Auto Play: OFF";
+        btn.className = "bg-indigo-950/80 border border-indigo-700/80 text-indigo-300 px-3 py-1.5 rounded-xl text-xs font-semibold transition";
+      } else {
+        autoplayTimer = setInterval(nextCard, 5000);
+        btn.innerText = "Auto Play: ON (5s)";
+        btn.className = "bg-emerald-950/80 border border-emerald-700/80 text-emerald-300 px-3 py-1.5 rounded-xl text-xs font-semibold transition";
+      }
+    }
+
+    /* ADMIN LOGIC */
+    let selectedIds = new Set();
+
+    function initAdminView() {
+      db.ref('appreciations').on('value', (snapshot) => {
+        const data = snapshot.val() || {};
+        const all = Object.keys(data).map(id => ({ id, ...data[id] }));
+        renderAdminList(all);
+      });
+    }
+
+    function renderAdminList(data) {
+      const list = document.getElementById('admin-list');
+      list.innerHTML = '';
+
+      const pending = data.filter(m => m.status === 'pending');
+
+      if (pending.length === 0) {
+        list.innerHTML = `<p class="text-center py-10 text-slate-400 text-sm border border-slate-800 bg-slate-900/30 rounded-2xl backdrop-blur-xl">No pending messages left to moderate.</p>`;
+        updateButtons();
+        return;
+      }
+
+      pending.forEach((msg, idx) => {
+        const theme = pastelThemes[idx % pastelThemes.length];
+        const isSelected = selectedIds.has(msg.id);
+        const card = document.createElement('div');
+        card.className = `${theme} p-4 rounded-2xl cursor-pointer transition flex justify-between items-start backdrop-blur-xl ${isSelected ? 'selected-card' : ''}`;
+        card.onclick = () => toggleSelectCard(msg.id, card);
+
+        card.innerHTML = `
+          <div class="space-y-1 pr-4">
+            <div class="text-xs text-slate-300">
+              <strong class="text-slate-100">To: ${escapeHtml(msg.teacher)}</strong> | From: ${escapeHtml(msg.name)} (${escapeHtml(msg.grade)})
+            </div>
+            <p class="text-sm text-slate-100">"${escapeHtml(msg.message)}"</p>
+          </div>
+          <div class="flex items-center gap-1">
+            <button onclick="event.stopPropagation(); toggleStar('${msg.id}', ${msg.featured})" class="text-lg p-1 hover:scale-125 transition" title="Toggle Feature">
+              ${msg.featured ? '⭐' : '☆'}
+            </button>
+            <button onclick="event.stopPropagation(); deleteSingle('${msg.id}')" class="text-xs bg-rose-950/80 hover:bg-rose-900 border border-rose-700/50 text-rose-200 px-2 py-1 rounded-lg transition ml-1" title="Delete Message">
+              🗑️
+            </button>
+          </div>
+        `;
+        list.appendChild(card);
+      });
+
+      updateButtons();
+    }
+
+    function toggleSelectCard(id, cardEl) {
+      if (selectedIds.has(id)) {
+        selectedIds.delete(id);
+        cardEl.classList.remove('selected-card');
+      } else {
+        selectedIds.add(id);
+        cardEl.classList.add('selected-card');
+      }
+      updateButtons();
+    }
+
+    function updateButtons() {
+      const count = selectedIds.size;
+      document.getElementById('selected-count').innerText = count;
+      document.getElementById('delete-count').innerText = count;
+      document.getElementById('bulk-approve-btn').disabled = count === 0;
+      document.getElementById('bulk-delete-btn').disabled = count === 0;
+    }
+
+    function toggleStar(id, currentFeatured) {
+      db.ref(`appreciations/${id}`).update({ featured: !currentFeatured });
+    }
+
+    function deleteSingle(id) {
+      db.ref(`appreciations/${id}`).remove();
+      selectedIds.delete(id);
+      updateButtons();
+    }
+
+    function deleteSelected() {
+      selectedIds.forEach(id => {
+        db.ref(`appreciations/${id}`).remove();
+      });
+      selectedIds.clear();
+      updateButtons();
+    }
+
+    function approveSelected() {
+      selectedIds.forEach(id => {
+        db.ref(`appreciations/${id}`).update({ status: 'approved' });
+      });
+      selectedIds.clear();
+      updateButtons();
+      confetti({ particleCount: 50, spread: 50, origin: { y: 0.8 } });
+    }
+
+    function clearAllData() {
+      db.ref('appreciations').remove();
+      selectedIds.clear();
+      updateButtons();
+    }
+
+    function escapeHtml(str) {
+      return str ? str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;") : '';
+    }
+  </script>
+</body>
+</html>
